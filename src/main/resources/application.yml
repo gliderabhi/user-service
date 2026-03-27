@@ -24,9 +24,12 @@ eureka:
     fetch-registry: true
     register-with-eureka: true
   instance:
-    prefer-ip-address: false
-    hostname: ${spring.application.name}
+    prefer-ip-address: true
     instance-id: ${spring.application.name}:${random.value}
+
+jwt:
+  secret: sevis-automobile-transport-secret-key-2024-must-be-at-least-256-bits
+  expiration-ms: 86400000  # 24 hours
 
 management:
   endpoints:
