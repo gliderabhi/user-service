@@ -60,7 +60,7 @@ public class AuthService {
         sessionRepository.deleteByUserId(user.getId());
 
         String sessionId = jwtUtil.generateSessionId();
-        String token = jwtUtil.generateToken(user.getEmail(), user.getId(), user.getRole().name(), sessionId, user.getRateLimit());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getId(), user.getRole().name(), user.getAccountType().name(), sessionId, user.getRateLimit());
 
         UserSession session = new UserSession();
         session.setUserId(user.getId());

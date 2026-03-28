@@ -22,11 +22,12 @@ public class JwtUtil {
         this.expirationMs = expirationMs;
     }
 
-    public String generateToken(String email, Long userId, String role, String sessionId, int rateLimit) {
+    public String generateToken(String email, Long userId, String role, String accountType, String sessionId, int rateLimit) {
         return Jwts.builder()
                 .setSubject(email)
                 .claim("userId", userId)
                 .claim("role", role)
+                .claim("accountType", accountType)
                 .claim("sessionId", sessionId)
                 .claim("rateLimit", rateLimit)
                 .setIssuedAt(new Date())
