@@ -21,6 +21,11 @@ public class User implements UserDetails {
     public enum AccountType { INDIVIDUAL, COMPANY }
     public enum Status      { ACTIVE, INACTIVE, SUSPENDED }
 
+    /** Requests per minute allowed for this client. Configurable per user. */
+    public static final int DEFAULT_RATE_INDIVIDUAL = 60;
+    public static final int DEFAULT_RATE_COMPANY    = 300;
+    public static final int DEFAULT_RATE_ADMIN      = 1000;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -44,6 +49,10 @@ public class User implements UserDetails {
     private AccountType accountType;
 
     private String companyName;
+
+    /** Configurable rate limit (requests/min). Set at signup, adjustable per user. */
+    @Column(nullable = false)
+    private int rateLimit = DEFAULT_RATE_INDIVIDUAL;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

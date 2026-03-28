@@ -16,11 +16,18 @@ public class UserMapper {
         user.setRole(req.getRole());
         user.setAccountType(req.getAccountType());
         user.setCompanyName(req.getCompanyName());
+        user.setRateLimit(defaultRateLimit(req.getRole(), req.getAccountType()));
         return user;
     }
 
     public static UserResponse toResponse(User user) {
         return new UserResponse(user);
+    }
+
+    private static int defaultRateLimit(User.Role role, User.AccountType accountType) {
+        if (role == User.Role.ADMIN)               return User.DEFAULT_RATE_ADMIN;
+        if (accountType == User.AccountType.COMPANY) return User.DEFAULT_RATE_COMPANY;
+        return User.DEFAULT_RATE_INDIVIDUAL;
     }
 
     private UserMapper() {}
