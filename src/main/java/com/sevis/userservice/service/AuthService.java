@@ -41,6 +41,11 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Company name is required for COMPANY account type");
         }
+        if (req.getRole() == User.Role.DEALER &&
+                (req.getGstNo() == null || req.getGstNo().isBlank())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "GST number is required for DEALER accounts");
+        }
 
         User saved = userRepository.save(UserMapper.toEntity(req, passwordEncoder));
         return Map.of("message", "User registered successfully", "userId", saved.getId());

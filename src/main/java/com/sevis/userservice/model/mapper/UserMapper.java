@@ -16,6 +16,12 @@ public class UserMapper {
         user.setRole(req.getRole());
         user.setAccountType(req.getAccountType());
         user.setCompanyName(req.getCompanyName());
+        user.setGstNo(req.getGstNo());
+        user.setAddress(req.getAddress());
+        user.setCity(req.getCity());
+        user.setState(req.getState());
+        user.setPinCode(req.getPinCode());
+        user.setDealerCode(req.getDealerCode());
         user.setRateLimit(defaultRateLimit(req.getRole(), req.getAccountType()));
         return user;
     }

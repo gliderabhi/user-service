@@ -50,6 +50,14 @@ public class User implements UserDetails {
 
     private String companyName;
 
+    // Dealer-specific fields
+    private String gstNo;
+    private String address;
+    private String city;
+    private String state;
+    private String pinCode;
+    private String dealerCode;
+
     /** Configurable rate limit (requests/min). Set at signup, adjustable per user. */
     @Column(nullable = false)
     private int rateLimit = DEFAULT_RATE_INDIVIDUAL;

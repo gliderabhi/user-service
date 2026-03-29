@@ -31,4 +31,18 @@ public class SignupRequest {
     private User.AccountType accountType;
 
     private String companyName;
+
+    // Dealer-specific fields
+    @Pattern(regexp = "^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$",
+             message = "Invalid GST number format (e.g. 22AAAAA0000A1Z5)")
+    private String gstNo;
+
+    private String address;
+    private String city;
+    private String state;
+
+    @Pattern(regexp = "^[1-9][0-9]{5}$", message = "Invalid 6-digit pincode")
+    private String pinCode;
+
+    private String dealerCode;
 }
