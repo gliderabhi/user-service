@@ -23,6 +23,7 @@ public class UserMapper {
         user.setPinCode(req.getPinCode());
         user.setDealerCode(req.getDealerCode());
         user.setRateLimit(defaultRateLimit(req.getRole(), req.getAccountType()));
+        user.setDealerId(req.getDealerId());
         return user;
     }
 
@@ -32,6 +33,7 @@ public class UserMapper {
 
     private static int defaultRateLimit(User.Role role, User.AccountType accountType) {
         if (role == User.Role.ADMIN)               return User.DEFAULT_RATE_ADMIN;
+        if (role == User.Role.TECHNICIAN)          return User.DEFAULT_RATE_TECHNICIAN;
         if (accountType == User.AccountType.COMPANY) return User.DEFAULT_RATE_COMPANY;
         return User.DEFAULT_RATE_INDIVIDUAL;
     }

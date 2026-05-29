@@ -45,4 +45,7 @@ public class SignupRequest {
     private String pinCode;
 
     private String dealerCode;
+
+    // Technician-specific: the dealer this technician belongs to
+    private Long dealerId;
 }

@@ -17,14 +17,15 @@ import java.util.List;
 @Setter
 public class User implements UserDetails {
 
-    public enum Role        { DEALER, CUSTOMER, ADMIN }
+    public enum Role        { DEALER, CUSTOMER, ADMIN, TECHNICIAN }
     public enum AccountType { INDIVIDUAL, COMPANY }
     public enum Status      { ACTIVE, INACTIVE, SUSPENDED }
 
     /** Requests per minute allowed for this client. Configurable per user. */
-    public static final int DEFAULT_RATE_INDIVIDUAL = 60;
-    public static final int DEFAULT_RATE_COMPANY    = 300;
-    public static final int DEFAULT_RATE_ADMIN      = 1000;
+    public static final int DEFAULT_RATE_INDIVIDUAL  = 60;
+    public static final int DEFAULT_RATE_COMPANY     = 300;
+    public static final int DEFAULT_RATE_ADMIN       = 1000;
+    public static final int DEFAULT_RATE_TECHNICIAN  = 120;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,6 +50,9 @@ public class User implements UserDetails {
     private AccountType accountType;
 
     private String companyName;
+
+    // Technician-specific: the dealer this technician belongs to
+    private Long dealerId;
 
     // Dealer-specific fields
     private String gstNo;

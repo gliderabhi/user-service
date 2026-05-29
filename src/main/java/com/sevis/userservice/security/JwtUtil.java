@@ -22,14 +22,16 @@ public class JwtUtil {
         this.expirationMs = expirationMs;
     }
 
-    public String generateToken(String email, Long userId, String role, String accountType, String sessionId, int rateLimit) {
-        return Jwts.builder()
+    public String generateToken(String email, Long userId, String role, String accountType, String sessionId, int rateLimit, Long dealerId) {
+        var builder = Jwts.builder()
                 .setSubject(email)
                 .claim("userId", userId)
                 .claim("role", role)
                 .claim("accountType", accountType)
                 .claim("sessionId", sessionId)
-                .claim("rateLimit", rateLimit)
+                .claim("rateLimit", rateLimit);
+        if (dealerId != null) builder.claim("dealerId", dealerId);
+        return builder
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key, SignatureAlgorithm.HS256)

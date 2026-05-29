@@ -46,6 +46,9 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "GST number is required for DEALER accounts");
         }
+        if (req.getRole() == User.Role.TECHNICIAN && req.getAccountType() == null) {
+            req.setAccountType(User.AccountType.INDIVIDUAL);
+        }
 
         User saved = userRepository.save(UserMapper.toEntity(req, passwordEncoder));
         return Map.of("message", "User registered successfully", "userId", saved.getId());
@@ -65,7 +68,7 @@ public class AuthService {
         sessionRepository.deleteByUserId(user.getId());
 
         String sessionId = jwtUtil.generateSessionId();
-        String token = jwtUtil.generateToken(user.getEmail(), user.getId(), user.getRole().name(), user.getAccountType().name(), sessionId, user.getRateLimit());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getId(), user.getRole().name(), user.getAccountType().name(), sessionId, user.getRateLimit(), user.getDealerId());
 
         UserSession session = new UserSession();
         session.setUserId(user.getId());
