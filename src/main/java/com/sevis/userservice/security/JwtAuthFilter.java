@@ -1,5 +1,6 @@
 package com.sevis.userservice.security;
 
+import com.sevis.userservice.model.UserSession;
 import com.sevis.userservice.repository.UserSessionRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -41,10 +43,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         // Single-device check: session must exist in DB
-        if (sessionRepository.findBySessionId(jwtUtil.getSessionId(token)).isEmpty()) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Session expired or logged in from another device\"}");
+        UserSession session = sessionRepository.findBySessionId(jwtUtil.getSessionId(token)).orElse(null);
+        if (session == null) {
+            sendUnauthorized(response, "Session expired or logged in from another device");
+            return;
+        }
+
+        // Absolute session expiry check
+        if (session.getExpiresAt() != null && session.getExpiresAt().isBefore(LocalDateTime.now())) {
+            sessionRepository.delete(session);
+            sendUnauthorized(response, "Session expired");
             return;
         }
 
@@ -57,5 +65,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         chain.doFilter(request, response);
+    }
+
+    private void sendUnauthorized(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.getWriter().write("{\"error\":\"" + message + "\"}");
     }
 }

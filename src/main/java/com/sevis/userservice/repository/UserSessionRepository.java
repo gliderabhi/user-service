@@ -4,6 +4,7 @@ import com.sevis.userservice.model.UserSession;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface UserSessionRepository extends JpaRepository<UserSession, Long> {
@@ -11,4 +12,7 @@ public interface UserSessionRepository extends JpaRepository<UserSession, Long> 
 
     @Transactional
     void deleteByUserId(Long userId);
+
+    @Transactional
+    void deleteByExpiresAtBefore(LocalDateTime cutoff);
 }
