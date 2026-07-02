@@ -5,6 +5,7 @@ import com.sevis.userservice.model.mapper.UserMapper;
 import com.sevis.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -16,6 +17,7 @@ import java.util.Map;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<UserResponse> getAll() {
         return userRepository.findAll().stream()
@@ -36,6 +38,16 @@ public class UserService {
             if (body.containsKey("companyName")) user.setCompanyName(body.get("companyName"));
             return UserMapper.toResponse(userRepository.save(user));
         }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    }
+
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Current password is incorrect");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 
     public void delete(Long id) {

@@ -38,8 +38,10 @@ public class User implements UserDetails {
 
     private String phone;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String password;
+
+    private String googleId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

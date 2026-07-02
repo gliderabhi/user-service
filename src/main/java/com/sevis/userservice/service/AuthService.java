@@ -8,6 +8,7 @@ import com.sevis.userservice.model.UserSession;
 import com.sevis.userservice.model.mapper.UserMapper;
 import com.sevis.userservice.repository.UserRepository;
 import com.sevis.userservice.repository.UserSessionRepository;
+import com.sevis.userservice.security.GoogleTokenVerifier;
 import com.sevis.userservice.security.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authManager;
     private final JwtUtil jwtUtil;
+    private final GoogleTokenVerifier googleTokenVerifier;
 
     public Map<String, Object> signup(SignupRequest req) {
         if (userRepository.existsByEmail(req.getEmail())) {
@@ -69,6 +71,49 @@ public class AuthService {
 
         String sessionId = jwtUtil.generateSessionId();
         String token = jwtUtil.generateToken(user.getEmail(), user.getId(), user.getRole().name(), user.getAccountType().name(), sessionId, user.getRateLimit(), user.getDealerId());
+
+        UserSession session = new UserSession();
+        session.setUserId(user.getId());
+        session.setSessionId(sessionId);
+        session.setDeviceInfo(httpRequest.getHeader("User-Agent"));
+        session.setIpAddress(httpRequest.getRemoteAddr());
+        session.setExpiresAt(LocalDateTime.now().plusDays(1));
+        sessionRepository.save(session);
+
+        return new AuthResponse(token, user);
+    }
+
+    public AuthResponse googleLogin(String idToken, HttpServletRequest httpRequest) {
+        GoogleTokenVerifier.GoogleUserInfo info = googleTokenVerifier.verify(idToken);
+
+        User user = userRepository.findByEmail(info.email())
+                .orElseGet(() -> {
+                    User u = new User();
+                    u.setName(info.name());
+                    u.setEmail(info.email());
+                    u.setGoogleId(info.googleId());
+                    u.setRole(User.Role.CUSTOMER);
+                    u.setAccountType(User.AccountType.INDIVIDUAL);
+                    u.setRateLimit(User.DEFAULT_RATE_INDIVIDUAL);
+                    u.setStatus(User.Status.ACTIVE);
+                    return userRepository.save(u);
+                });
+
+        if (user.getStatus() == User.Status.SUSPENDED) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account is suspended");
+        }
+
+        if (user.getGoogleId() == null) {
+            user.setGoogleId(info.googleId());
+            userRepository.save(user);
+        }
+
+        sessionRepository.deleteByUserId(user.getId());
+
+        String sessionId = jwtUtil.generateSessionId();
+        String token = jwtUtil.generateToken(
+                user.getEmail(), user.getId(), user.getRole().name(),
+                user.getAccountType().name(), sessionId, user.getRateLimit(), user.getDealerId());
 
         UserSession session = new UserSession();
         session.setUserId(user.getId());
