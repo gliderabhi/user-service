@@ -33,7 +33,12 @@ public class AuthController {
 
     @PostMapping("/google")
     public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> body, HttpServletRequest request) {
-        return ResponseEntity.ok(authService.googleLogin(body.get("idToken"), request));
+        // The TV app's device-code sign-in sets longLived=true — a TV isn't
+        // carried around and re-authenticated often like a phone, and repeatedly
+        // walking back through the QR flow just to re-auth every 24h is poor UX
+        // for a device that's meant to just sit there and stay signed in.
+        boolean longLived = "true".equals(body.get("longLived"));
+        return ResponseEntity.ok(authService.googleLogin(body.get("idToken"), request, longLived));
     }
 
     @PostMapping("/logout")

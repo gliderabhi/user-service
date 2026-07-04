@@ -20,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -33,6 +34,13 @@ public class AuthService {
     private final AuthenticationManager authManager;
     private final JwtUtil jwtUtil;
     private final GoogleTokenVerifier googleTokenVerifier;
+
+    // A TV isn't carried around and re-authenticated the way a phone is — the
+    // device-code sign-in flow requesting a fresh QR/code every day would be
+    // poor UX for something meant to just sit there signed in. 365 days here
+    // is "effectively persistent" while still bounded, rather than a token
+    // that never expires at all.
+    private static final Duration TV_SESSION_DURATION = Duration.ofDays(365);
 
     public Map<String, Object> signup(SignupRequest req) {
         if (userRepository.existsByEmail(req.getEmail())) {
@@ -83,7 +91,7 @@ public class AuthService {
         return new AuthResponse(token, user);
     }
 
-    public AuthResponse googleLogin(String idToken, HttpServletRequest httpRequest) {
+    public AuthResponse googleLogin(String idToken, HttpServletRequest httpRequest, boolean longLived) {
         GoogleTokenVerifier.GoogleUserInfo info = googleTokenVerifier.verify(idToken);
 
         User user = userRepository.findByEmail(info.email())
@@ -111,16 +119,20 @@ public class AuthService {
         sessionRepository.deleteByUserId(user.getId());
 
         String sessionId = jwtUtil.generateSessionId();
-        String token = jwtUtil.generateToken(
-                user.getEmail(), user.getId(), user.getRole().name(),
-                user.getAccountType().name(), sessionId, user.getRateLimit(), user.getDealerId());
+        String token = longLived
+                ? jwtUtil.generateToken(
+                        user.getEmail(), user.getId(), user.getRole().name(), user.getAccountType().name(),
+                        sessionId, user.getRateLimit(), user.getDealerId(), TV_SESSION_DURATION)
+                : jwtUtil.generateToken(
+                        user.getEmail(), user.getId(), user.getRole().name(),
+                        user.getAccountType().name(), sessionId, user.getRateLimit(), user.getDealerId());
 
         UserSession session = new UserSession();
         session.setUserId(user.getId());
         session.setSessionId(sessionId);
         session.setDeviceInfo(httpRequest.getHeader("User-Agent"));
         session.setIpAddress(httpRequest.getRemoteAddr());
-        session.setExpiresAt(LocalDateTime.now().plusDays(1));
+        session.setExpiresAt(longLived ? LocalDateTime.now().plus(TV_SESSION_DURATION) : LocalDateTime.now().plusDays(1));
         sessionRepository.save(session);
 
         return new AuthResponse(token, user);

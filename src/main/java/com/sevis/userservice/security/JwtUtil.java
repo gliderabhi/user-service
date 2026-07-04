@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.time.Duration;
 import java.util.Date;
 import java.util.UUID;
 
@@ -23,6 +24,10 @@ public class JwtUtil {
     }
 
     public String generateToken(String email, Long userId, String role, String accountType, String sessionId, int rateLimit, Long dealerId) {
+        return generateToken(email, userId, role, accountType, sessionId, rateLimit, dealerId, Duration.ofMillis(expirationMs));
+    }
+
+    public String generateToken(String email, Long userId, String role, String accountType, String sessionId, int rateLimit, Long dealerId, Duration expiresIn) {
         var builder = Jwts.builder()
                 .setSubject(email)
                 .claim("userId", userId)
@@ -33,7 +38,7 @@ public class JwtUtil {
         if (dealerId != null) builder.claim("dealerId", dealerId);
         return builder
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
+                .setExpiration(new Date(System.currentTimeMillis() + expiresIn.toMillis()))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }

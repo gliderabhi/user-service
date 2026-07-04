@@ -40,6 +40,14 @@ jwt:
 session:
   cleanup-cron: "0 */5 * * * *"  # every 5 minutes
 
+google:
+  # Web Sign-In client (used by the Angular app's GSI button) plus the TV/Limited-Input
+  # client (used by the Android TV app's device-code/QR sign-in flow) — an ID token's
+  # `aud` claim will match whichever client actually issued it, so both must be accepted.
+  # Comma-separated (not a YAML list): @Value can't reliably bind a List<String> from a
+  # YAML sequence, since there's no flat property key for it to resolve.
+  client-ids: 1059813087193-btfkk2bhtj50grqjta6anvo5i7vq77pl.apps.googleusercontent.com,1059813087193-v2ktnlvo5vu60g18dsacdr34jqtut5pq.apps.googleusercontent.com
+
 management:
   endpoints:
     web:
