@@ -17,7 +17,7 @@ import java.util.List;
 @Setter
 public class User implements UserDetails {
 
-    public enum Role        { DEALER, CUSTOMER, ADMIN, TECHNICIAN, BROKER, SEEKER }
+    public enum Role        { DEALER, CUSTOMER, ADMIN, TECHNICIAN, BROKER, SEEKER, VIEWER }
     public enum AccountType { INDIVIDUAL, COMPANY }
     public enum Status      { ACTIVE, INACTIVE, SUSPENDED }
 
