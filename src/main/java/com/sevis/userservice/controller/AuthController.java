@@ -1,5 +1,6 @@
 package com.sevis.userservice.controller;
 
+import com.sevis.userservice.dto.request.GoogleCompleteRequest;
 import com.sevis.userservice.dto.request.LoginRequest;
 import com.sevis.userservice.dto.request.SignupRequest;
 import com.sevis.userservice.service.AuthService;
@@ -38,7 +39,15 @@ public class AuthController {
         // walking back through the QR flow just to re-auth every 24h is poor UX
         // for a device that's meant to just sit there and stay signed in.
         boolean longLived = "true".equals(body.get("longLived"));
-        return ResponseEntity.ok(authService.googleLogin(body.get("idToken"), request, longLived));
+        return ResponseEntity.ok(authService.googleLogin(body.get("idToken"), request, longLived, body.get("appId")));
+    }
+
+    // Called after /google returns 404 (identity exists but has no role for
+    // this app, or doesn't exist at all yet) — the frontend collects the
+    // missing details (role, name, etc.) and resubmits the same idToken here.
+    @PostMapping("/google/complete")
+    public ResponseEntity<?> completeGoogleSignup(@Valid @RequestBody GoogleCompleteRequest req, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.completeGoogleSignup(req, request));
     }
 
     @PostMapping("/logout")

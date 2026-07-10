@@ -4,27 +4,27 @@ import com.sevis.userservice.model.User;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+/**
+ * Submitted by the "complete your profile" page shown after a Google
+ * sign-in for an identity with no role yet in the target app. The idToken
+ * is re-verified server-side — email is never taken from the request body,
+ * only from the verified Google token, so this can't be used to claim an
+ * arbitrary email.
+ */
 @Data
-public class SignupRequest {
+public class GoogleCompleteRequest {
+
+    @NotBlank(message = "idToken is required")
+    private String idToken;
 
     @NotBlank(message = "Name is required")
     @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
     private String name;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
-    private String email;
-
     @Pattern(regexp = "^[+]?[0-9]{7,15}$", message = "Invalid phone number")
     private String phone;
 
-    @NotBlank(message = "Password is required")
-    @Size(min = 8, message = "Password must be at least 8 characters")
-    @Pattern(regexp = ".*[A-Z].*", message = "Password must contain at least one uppercase letter")
-    @Pattern(regexp = ".*[0-9].*", message = "Password must contain at least one digit")
-    private String password;
-
-    @NotNull(message = "Role is required (DEALER or CUSTOMER)")
+    @NotNull(message = "Role is required")
     private User.Role role;
 
     @NotNull(message = "Account type is required (INDIVIDUAL or COMPANY)")
@@ -32,7 +32,6 @@ public class SignupRequest {
 
     private String companyName;
 
-    // Dealer-specific fields
     @Pattern(regexp = "^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$",
              message = "Invalid GST number format (e.g. 22AAAAA0000A1Z5)")
     private String gstNo;
@@ -45,14 +44,8 @@ public class SignupRequest {
     private String pinCode;
 
     private String dealerCode;
-
-    // Technician-specific: the dealer this technician belongs to
     private Long dealerId;
 
-    // Which app this signup is for (e.g. "ROOMLIST"). Omitted/blank defaults to
-    // the legacy SEVIS_AUTO app, preserving today's single-identity signup
-    // behavior exactly. For any other appId, an existing identity (same email,
-    // verified by password match) is reused and just gets a new per-app role
-    // instead of being blocked by the "email already registered" check.
+    // Which app this completion is for — same semantics as SignupRequest.appId.
     private String appId;
 }

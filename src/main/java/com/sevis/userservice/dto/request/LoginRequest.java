@@ -13,4 +13,8 @@ public class LoginRequest {
 
     @NotBlank(message = "Password is required")
     private String password;
+
+    // Which app this login is for (e.g. "ROOMLIST"). Omitted/blank defaults to
+    // the legacy SEVIS_AUTO app for backward compatibility with existing clients.
+    private String appId;
 }

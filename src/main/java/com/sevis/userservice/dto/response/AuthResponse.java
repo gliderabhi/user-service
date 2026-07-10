@@ -20,11 +20,17 @@ public class AuthResponse {
     private final String dealerCode;
 
     public AuthResponse(String token, User user) {
+        this(token, user, user.getRole().name());
+    }
+
+    // Used when the caller has resolved an app-scoped role (see AuthService's
+    // per-app UserAppRole lookup) rather than the identity's legacy top-level role.
+    public AuthResponse(String token, User user, String role) {
         this.token       = token;
         this.userId      = user.getId();
         this.name        = user.getName();
         this.email       = user.getEmail();
-        this.role        = user.getRole().name();
+        this.role        = role;
         this.accountType = user.getAccountType().name();
         this.companyName = user.getCompanyName();
         this.gstNo       = user.getGstNo();
