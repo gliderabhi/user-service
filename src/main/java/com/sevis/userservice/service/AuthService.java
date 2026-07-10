@@ -15,6 +15,7 @@ import com.sevis.userservice.security.GoogleTokenVerifier;
 import com.sevis.userservice.security.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -56,6 +57,10 @@ public class AuthService {
         return (raw == null || raw.isBlank()) ? LEGACY_APP_ID : raw.trim().toUpperCase();
     }
 
+    // Not a per-id eviction target (new user, no cached entry exists yet for
+    // its id), but it can add a row to the "allUsers" listing, so that list
+    // cache must be invalidated.
+    @CacheEvict(value = "allUsers", allEntries = true)
     public Map<String, Object> signup(SignupRequest req) {
         String appId = normalizeAppId(req.getAppId());
 
@@ -218,6 +223,9 @@ public class AuthService {
     // time ever) or links a new per-app role onto an existing identity
     // (non-legacy app). No password is set for Google-only identities —
     // User.password stays null and they keep authenticating via Google.
+    // Can create a brand-new User row (legacy app, or non-legacy app with no
+    // existing identity), which would make a cached "allUsers" listing stale.
+    @CacheEvict(value = "allUsers", allEntries = true)
     public AuthResponse completeGoogleSignup(GoogleCompleteRequest req, HttpServletRequest httpRequest) {
         GoogleTokenVerifier.GoogleUserInfo info = googleTokenVerifier.verify(req.getIdToken());
         String appId = normalizeAppId(req.getAppId());
